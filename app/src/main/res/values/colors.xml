@@ -16,6 +16,7 @@
     <color name="btn_color_enabled">@color/apple_green</color>
     <color name="btn_color_disabled">#eaeaea</color>
     
-    
+    <color name="tab_text_color">#8baaef</color>
+    <color name="tab_selected_text_color">#ffffff</color>
 
 </resources>
