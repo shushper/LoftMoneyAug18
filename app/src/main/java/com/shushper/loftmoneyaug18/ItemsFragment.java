@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -37,7 +36,6 @@ public class ItemsFragment extends Fragment {
     private static final int REQUEST_CODE = 100;
 
 
-
     public static ItemsFragment newInstance(String type) {
         ItemsFragment fragment = new ItemsFragment();
 
@@ -58,7 +56,6 @@ public class ItemsFragment extends Fragment {
     private ItemsAdapter adapter;
     private Api api;
     private SwipeRefreshLayout refresh;
-    private FloatingActionButton fab;
 
     private String type;
 
@@ -105,15 +102,6 @@ public class ItemsFragment extends Fragment {
         recycler.setAdapter(adapter);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        fab = view.findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(requireContext(), AddActivity.class);
-                intent.putExtra(AddActivity.KEY_TYPE, type);
-                startActivityForResult(intent, REQUEST_CODE);
-            }
-        });
     }
 
     @Override
@@ -149,15 +137,15 @@ public class ItemsFragment extends Fragment {
 
     }
 
-
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
             Item item = data.getParcelableExtra(AddActivity.KEY_ITEM);
-            adapter.addItem(item);
+            if (item.getType().equals(type)) {
+                adapter.addItem(item);
+            }
         }
     }
 }
