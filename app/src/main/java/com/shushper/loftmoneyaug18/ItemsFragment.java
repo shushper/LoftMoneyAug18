@@ -1,10 +1,14 @@
 package com.shushper.loftmoneyaug18;
 
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -18,6 +22,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static android.app.Activity.RESULT_OK;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -27,6 +33,9 @@ public class ItemsFragment extends Fragment {
     private static final String TAG = "ItemsFragment";
 
     private static final String KEY_TYPE = "type";
+
+    private static final int REQUEST_CODE = 100;
+
 
 
     public static ItemsFragment newInstance(String type) {
@@ -48,6 +57,8 @@ public class ItemsFragment extends Fragment {
     private RecyclerView recycler;
     private ItemsAdapter adapter;
     private Api api;
+    private SwipeRefreshLayout refresh;
+    private FloatingActionButton fab;
 
     private String type;
 
@@ -74,9 +85,35 @@ public class ItemsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         Log.i(TAG, "onViewCreated: ");
+
+
+
+        refresh = view.findViewById(R.id.refresh);
+        refresh.setColorSchemeColors(
+                ContextCompat.getColor(requireContext(), R.color.apple_green),
+                ContextCompat.getColor(requireContext(), R.color.colorAccent),
+                ContextCompat.getColor(requireContext(), R.color.dark_sky_blue)
+        );
+        refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                loadItems();
+            }
+        });
+
         recycler = view.findViewById(R.id.recycler);
         recycler.setAdapter(adapter);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        fab = view.findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(requireContext(), AddActivity.class);
+                intent.putExtra(AddActivity.KEY_TYPE, type);
+                startActivityForResult(intent, REQUEST_CODE);
+            }
+        });
     }
 
     @Override
@@ -99,108 +136,28 @@ public class ItemsFragment extends Fragment {
 
             @Override
             public void onResponse(Call<List<Item>> call, Response<List<Item>> response) {
+                refresh.setRefreshing(false);
                 List<Item> items = response.body();
                 adapter.setItems(items);
             }
 
             @Override
             public void onFailure(Call<List<Item>> call, Throwable t) {
-
+                refresh.setRefreshing(false);
             }
         });
 
     }
 
-//    private void loadItems() {
-//
-//        @SuppressLint("StaticFieldLeak")
-//        AsyncTask<Void, Void, List<Item>> asyncTask = new AsyncTask<Void, Void, List<Item>>() {
-//
-//            @Override
-//            protected void onPreExecute() {
-//                super.onPreExecute();
-//            }
-//
-//            @Override
-//            protected List<Item> doInBackground(Void... voids) {
-//                Call call = api.getItems(type);
-//
-//                try {
-//                    Response<List<Item>> response = call.execute();
-//                    List<Item> items = response.body();
-//                    return items;
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//                return null;
-//            }
-//
-//            @Override
-//            protected void onPostExecute(List<Item> items) {
-//                if (items != null) {
-//                    adapter.setItems(items);
-//                }
-//
-//            }
-//        };
-//
-//        asyncTask.execute();
-//    }
 
-//    private void loadItems() {
-//        Call call = api.getItems(type);
-//
-//        try {
-//            Response<List<Item>> response =  call.execute();
-//            List<Item> items = response.body();
-//            adapter.setItems(items);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
 
-//    private void loadItems() {
-//        new LoadItemsTask().start();
-//    }
-//
-//    private class LoadItemsTask implements Runnable, Handler.Callback {
-//
-//        private Thread thread;
-//        private Handler handler;
-//
-//        public LoadItemsTask() {
-//            thread = new Thread(this);
-//            handler = new Handler(this);
-//        }
-//
-//        public void start() {
-//            thread.start();
-//        }
-//
-//        @Override
-//        public void run() {
-//            Call call = api.getItems(type);
-//
-//            try {
-//                Response<List<Item>> response = call.execute();
-//                List<Item> items = response.body();
-//
-//                Message message = handler.obtainMessage(111, items);
-//                message.sendToTarget();
-//
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        @Override
-//        public boolean handleMessage(Message msg) {
-//            if (msg.what == 111) {
-//                List<Item> items = (List<Item>) msg.obj;
-//                adapter.setItems(items);
-//                return true;
-//            }
-//            return false;
-//        }
-//    }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
+            Item item = data.getParcelableExtra(AddActivity.KEY_ITEM);
+            adapter.addItem(item);
+        }
+    }
 }
