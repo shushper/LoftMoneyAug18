@@ -6,6 +6,9 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="windowActionModeOverlay">true</item>
+        <item name="android:actionModeBackground">@color/action_mode_color</item>
+        <item name="actionModeSplitBackground">@color/action_mode_color</item>
     </style>
 
     <style name="AddItemTheme"  parent="Theme.AppCompat.NoActionBar">

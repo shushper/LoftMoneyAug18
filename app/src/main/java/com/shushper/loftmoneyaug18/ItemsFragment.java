@@ -8,10 +8,15 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -59,6 +64,8 @@ public class ItemsFragment extends Fragment {
 
     private String type;
 
+    private ActionMode actionMode;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,6 +77,9 @@ public class ItemsFragment extends Fragment {
         api = ((App) getActivity().getApplication()).getApi();
 
         adapter = new ItemsAdapter();
+        adapter.setListener(new AdapterListener());
+
+
         loadItems();
     }
 
@@ -148,4 +158,91 @@ public class ItemsFragment extends Fragment {
             }
         }
     }
+
+    private void removeSelectedItems() {
+        List<Integer> selected = adapter.getSelectedItems();
+
+        for (int i = 0; i < selected.size(); i++) {
+            adapter.removeItem(selected.get(i));
+        }
+
+        actionMode.finish();
+    }
+
+
+    class AdapterListener implements ItemsAdapterListener {
+
+        @Override
+        public void onItemClick(Item item, int position) {
+            Log.i(TAG, "onItemClick: name = " + item.getName() + " pos = " + position);
+
+            if (actionMode == null) {
+                return;
+            }
+
+            toggleItem(position);
+        }
+
+        @Override
+        public void onItemLongClick(Item item, int position) {
+            Log.i(TAG, "onItemLongClick: name = " + item.getName() + " pos = " + position);
+
+            if (actionMode != null) {
+               return;
+            }
+
+            ((AppCompatActivity) getActivity()).startSupportActionMode(new ActionModeCallback());
+            toggleItem(position);
+        }
+
+        private void toggleItem(int position) {
+            adapter.toggleItem(position);
+        }
+    }
+
+
+    class ActionModeCallback implements ActionMode.Callback {
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            Log.i(TAG, "onCreateActionMode: ");
+            actionMode = mode;
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            MenuInflater inflater = new MenuInflater(requireContext());
+            inflater.inflate(R.menu.menu_action_mode, menu);
+            return true;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            if (item.getItemId() == R.id.menu_item_delete) {
+                showConfirmationDialog();
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            adapter.clearSelections();
+            actionMode = null;
+        }
+
+        private void showConfirmationDialog() {
+            ConfirmDeleteDialog dialog = new ConfirmDeleteDialog();
+            dialog.show(getFragmentManager(), null);
+
+            dialog.setListener(new ConfirmDeleteDialog.Listener() {
+                @Override
+                public void onDeleteConfirmed() {
+                    removeSelectedItems();
+                }
+            });
+        }
+    }
+
 }

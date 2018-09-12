@@ -25,6 +25,10 @@ public class MainActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private FloatingActionButton fab;
 
+    public Toolbar getToolbar() {
+        return toolbar;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
