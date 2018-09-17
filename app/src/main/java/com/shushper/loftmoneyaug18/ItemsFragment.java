@@ -80,7 +80,7 @@ public class ItemsFragment extends Fragment {
         adapter.setListener(new AdapterListener());
 
 
-        loadItems();
+
     }
 
     @Override
@@ -112,6 +112,7 @@ public class ItemsFragment extends Fragment {
         recycler.setAdapter(adapter);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
 
+        loadItems();
     }
 
     @Override
